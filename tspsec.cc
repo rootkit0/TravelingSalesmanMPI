@@ -9,6 +9,7 @@ using namespace std;
 unsigned int NCIUDADES;
 int size, rango;
 int tagTrabajo = 50;
+int tagSolucion = 60;
 MPI_Datatype nodoDatatype;
 MPI_Request request;
 MPI_Status status;
@@ -25,27 +26,25 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 	int flag = 1;
 	while(flag == 1) {
 		//Recibimos los mensajes pendientes
-		if(MPI_Irecv(&tarea, 1, MPI_INT, MPI_ANY_SOURCE, tagTrabajo, MPI_COMM_WORLD, &request) == MPI_SUCCESS) {
-			//MPI_TEST comprueba si hemos recibido algun mensaje
-			MPI_Test(&request, &flag, &status);
-			//Enviamos trabajo al proceso que hizo la peticion
-			if(flag == 1) {
-				//Sacar el ultimo elemento de la pila y copiarlo al struct
-				PilaPop(pila, nodo);
-				//Adaptar el formato del struct para enviarlo
-				nodoPar.ci = nodo->ci;
-				for(int i=0; i<NCIUDADES; ++i) {
-					nodoPar.incl[i] = nodo->incl[i];
-				}
-				for(int j=0; j<NCIUDADES-2; ++j) {
-					nodoPar.dest_excl[j] = nodo->dest_excl[j];
-				}
-				//Enviar el struct a la tarea recibida
-				MPI_Send(&nodoPar, 1, nodoDatatype, tarea, tagTrabajo, MPI_COMM_WORLD);
-			}
-		}
-		else {
+		if(MPI_Irecv(&tarea, 1, MPI_INT, MPI_ANY_SOURCE, tagTrabajo, MPI_COMM_WORLD, &request) != MPI_SUCCESS) {
 			exit(2);
+		}
+		//MPI_TEST comprueba si hemos recibido algun mensaje
+		MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+		//Enviamos trabajo al proceso que hizo la peticion
+		if(flag == 1) {
+			//Sacar el ultimo elemento de la pila y copiarlo al struct
+			PilaPop(pila, nodo);
+			//Adaptar el formato del struct para enviarlo
+			nodoPar.ci = nodo->ci;
+			for(int i=0; i<NCIUDADES; ++i) {
+				nodoPar.incl[i] = nodo->incl[i];
+			}
+			for(int j=0; j<NCIUDADES-2; ++j) {
+				nodoPar.dest_excl[j] = nodo->dest_excl[j];
+			}
+			//Enviar el struct a la tarea recibida
+			MPI_Send(&nodoPar, 1, nodoDatatype, tarea, tagTrabajo, MPI_COMM_WORLD);
 		}
 	}
 }
@@ -68,6 +67,32 @@ void obtenerTrabajo(tPila *pila, tNodo *nodo) {
 	}
 	else {
 		exit(2);
+	}
+}
+
+void compartirSolucion(int U, bool nueva_U) {
+	//Si el proceso ha encontrado un optimo lo comparte con los otros procesos
+	if(nueva_U) {
+		for(int i=0; i<size; ++i) {
+			if(i != rango) {
+				MPI_Send(&U, 1, MPI_INT, i, tagSolucion, MPI_COMM_WORLD);
+			}
+		}
+	}
+	//Obtener posibles optimos de otros procesos
+	int actualizar_U;
+	int flag = 1;
+	while(flag == 1) {
+		if(MPI_Irecv(&actualizar_U, 1, MPI_INT, MPI_ANY_SOURCE, tagSolucion, MPI_COMM_WORLD, &request) != MPI_SUCCESS) {
+			exit(2);
+		}
+		MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+		if(flag == 1) {
+			//Comparar el optimo obtenido con nuestro optimo y actualizarlo
+			if(actualizar_U < U) {
+				U = actualizar_U;
+			}
+		}
 	}
 }
 
@@ -162,6 +187,8 @@ int main (int argc, char **argv) {
 		if (nueva_U) PilaAcotar (&pila, U);
 		activo = PilaPop (&pila, &nodo);
 
+		//Compartir y obtener los optimos de los distintos procesos
+		compartirSolucion(U, nueva_U);
 		//El proceso master atiende las peticiones de trabajo
 		if(rango == 0) {
 			asignarTrabajo(&pila, &nodo);
