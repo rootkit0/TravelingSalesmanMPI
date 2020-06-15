@@ -96,6 +96,45 @@ void compartirSolucion(int U, bool nueva_U) {
 	}
 }
 
+void calcularOptimo(tNodo nodo, tNodo lnodo, tNodo rnodo, tNodo solucion, bool activo, bool nueva_U, int U, tPila pila, int** tsp0) {
+	Ramifica (&nodo, &lnodo, &rnodo, tsp0);
+	nueva_U = false;
+	if (Solucion(&rnodo)) {
+		if (rnodo.ci < U) {    // se ha encontrado una solucion mejor
+			U = rnodo.ci;
+			nueva_U = true;
+			CopiaNodo (&rnodo, &solucion);
+		}
+	}
+	else {                    //  no es un nodo solucion
+		if (rnodo.ci < U) {     //  cota inferior menor que cota superior
+			if (!PilaPush (&pila, &rnodo)) {
+				printf ("Error: pila agotada\n");
+				liberarMatriz(tsp0);
+				exit (1);
+			}
+		}
+	}
+	if (Solucion(&lnodo)) {
+		if (lnodo.ci < U) {    // se ha encontrado una solucion mejor
+			U = lnodo.ci;
+			nueva_U = true;
+			CopiaNodo (&lnodo,&solucion);
+		}
+	}
+	else {                     // no es nodo solucion
+		if (lnodo.ci < U) {      // cota inferior menor que cota superior
+			if (!PilaPush (&pila, &lnodo)) {
+				printf ("Error: pila agotada\n");
+				liberarMatriz(tsp0);
+				exit (1);
+			}
+		}
+	}
+	if (nueva_U) PilaAcotar (&pila, U);
+	activo = PilaPop (&pila, &nodo);
+}
+
 int main (int argc, char **argv) {
     MPI::Init(argc,argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -123,7 +162,7 @@ int main (int argc, char **argv) {
 	U = INFINITO;		// inicializa cota superior
 
 	//Estructura de datos MPI
-	int blocklenghts[4] = {1, 100, 1, 100};
+	int blocklenghts[4] = {1, 1000, 1, 1000};
 	MPI_Datatype types[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
 	MPI_Aint offsets[4];
 	offsets[0] = offsetof(tNodoPar, ci);
@@ -141,59 +180,32 @@ int main (int argc, char **argv) {
 	if(rango == 0) {
 		LeerMatriz (argv[2], tsp0);
 	}
+
 	//Compartimos la matriz con todos los procesos
 	MPI_Bcast(&tsp0[0][0], NCIUDADES*NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
 	activo = !Inconsistente(tsp0);
-	//Los procesos piden trabajo al master
-	if(rango != 0) {
+
+	//Llenar la pila hasta que su tamano sea igual al numero de procesos
+	if(rango == 0) {
+		while(PilaTamanio(&pila) < size) {
+			calcularOptimo(nodo, lnodo, rnodo, solucion, activo, nueva_U, U, pila, tsp0);
+		}
+	}
+	else {
+		//Los procesos piden trabajo al master
 		obtenerTrabajo(&pila, &nodo);
 	}
 	
 	while (activo) {
-		Ramifica (&nodo, &lnodo, &rnodo, tsp0);
-		nueva_U = false;
-		if (Solucion(&rnodo)) {
-			if (rnodo.ci < U) {    // se ha encontrado una solucion mejor
-				U = rnodo.ci;
-				nueva_U = true;
-				CopiaNodo (&rnodo, &solucion);
-			}
-		}
-		else {                    //  no es un nodo solucion
-			if (rnodo.ci < U) {     //  cota inferior menor que cota superior
-				if (!PilaPush (&pila, &rnodo)) {
-					printf ("Error: pila agotada\n");
-					liberarMatriz(tsp0);
-					exit (1);
-				}
-			}
-		}
-		if (Solucion(&lnodo)) {
-			if (lnodo.ci < U) {    // se ha encontrado una solucion mejor
-				U = lnodo.ci;
-				nueva_U = true;
-				CopiaNodo (&lnodo,&solucion);
-			}
-		}
-		else {                     // no es nodo solucion
-			if (lnodo.ci < U) {      // cota inferior menor que cota superior
-				if (!PilaPush (&pila, &lnodo)) {
-					printf ("Error: pila agotada\n");
-					liberarMatriz(tsp0);
-					exit (1);
-				}
-			}
-		}
-		if (nueva_U) PilaAcotar (&pila, U);
-		activo = PilaPop (&pila, &nodo);
-
-		//Compartir y obtener los optimos de los distintos procesos
+		//Calcular optimo
+		calcularOptimo(nodo, lnodo, rnodo, solucion, activo, nueva_U, U, pila, tsp0);
+		//Compartir y obtener los optimos a/de los distintos procesos
 		compartirSolucion(U, nueva_U);
 		//El proceso master atiende las peticiones de trabajo
 		if(rango == 0) {
 			asignarTrabajo(&pila, &nodo);
 		}
-		//Si la pila esta vacia pedimos trabajo al proceso master
+		//Si la pila esta vacia el proceso pide trabajo al master
 		else {
 			if(PilaVacia(&pila)) {
 				obtenerTrabajo(&pila, &nodo);
