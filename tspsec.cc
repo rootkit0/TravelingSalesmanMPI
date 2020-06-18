@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
+#include <string.h>
 #include <mpi.h>
 #include "libtsp.h"
  
@@ -29,7 +30,7 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 		if(MPI_Irecv(&tarea, 1, MPI_INT, MPI_ANY_SOURCE, tagTrabajo, MPI_COMM_WORLD, &request) != MPI_SUCCESS) {
 			exit(2);
 		}
-		//MPI_TEST comprueba si hemos recibido algun mensaje
+		//Comprobamos si hemos recibido algun mensaje
 		MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
 		//Enviamos trabajo al proceso que hizo la peticion
 		if(flag == 1) {
@@ -40,11 +41,13 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 			for(int i=0; i<NCIUDADES; ++i) {
 				nodoPar.incl[i] = nodo->incl[i];
 			}
-			for(int j=0; j<NCIUDADES-2; ++j) {
+			nodoPar.orig_excl = nodo->orig_excl;
+			for(int j=0; j<NCIUDADES; ++j) {
 				nodoPar.dest_excl[j] = nodo->dest_excl[j];
 			}
 			//Enviar el struct a la tarea recibida
 			MPI_Send(&nodoPar, 1, nodoDatatype, tarea, tagTrabajo, MPI_COMM_WORLD);
+			//printf("Enviando a la tarea %d, el nodo con coste %d y orig %d\n", tarea, nodo->ci, nodo->orig_excl);
 		}
 	}
 }
@@ -59,9 +62,11 @@ void obtenerTrabajo(tPila *pila, tNodo *nodo) {
 		for(int i=0; i<NCIUDADES; ++i) {
 			nodo->incl[i] = nodoPar.incl[i];
 		}
-		for(int j=0; j<NCIUDADES-2; ++j) {
+		nodo->orig_excl = nodoPar.orig_excl;
+		for(int j=0; j<NCIUDADES; ++j) {
 			nodo->dest_excl[j] = nodoPar.dest_excl[j];
 		}
+		//printf("Tarea %d ha recibido, el nodo con coste %d y orig %d\n", rango, nodo->ci, nodo->orig_excl);
 		//Push a la pila con el nodo obtenido
 		PilaPush(pila, nodo);
 	}
@@ -125,14 +130,15 @@ int main (int argc, char **argv) {
 	//Estructura de datos MPI
 	int blocklenghts[4] = {1, 100, 1, 100};
 	MPI_Datatype types[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+	MPI_Aint intex;
+	MPI_Type_extent(MPI_INT, &intex);
 	MPI_Aint offsets[4];
-	offsets[0] = offsetof(tNodoPar, ci);
-	offsets[1] = offsetof(tNodoPar, incl);
-	offsets[2] = offsetof(tNodoPar, orig_excl);
-	offsets[3] = offsetof(tNodoPar, dest_excl);
+	offsets[0] = (MPI_Aint) 0;
+	offsets[1] = intex;
+	offsets[2] = intex + intex*100;
+	offsets[3] = intex + intex*100 + intex;
 	MPI_Type_struct(4, blocklenghts, offsets, types, &nodoDatatype);
 	MPI_Type_commit(&nodoDatatype);
-
 	InicNodo (&nodo);	// inicializa estructura nodo
 	PilaInic (&pila);	// inicializa pila
 	double t=MPI::Wtime();
@@ -152,7 +158,6 @@ int main (int argc, char **argv) {
 			PilaPush(&pila, &lnodo);
 			PilaPush(&pila, &rnodo);
 			PilaPop(&pila, &nodo);
-			printf("Pila tamano %d\n", PilaTamanio(&pila));
 		}
 	}
 	else {
@@ -160,8 +165,12 @@ int main (int argc, char **argv) {
 		obtenerTrabajo(&pila, &nodo);
 	}
 	
+	PilaPop(&pila, &nodo);
 	while (activo) {
 		Ramifica (&nodo, &lnodo, &rnodo, tsp0);
+		if(rango != 0) {
+			printf("Tarea %d, tamano pila %d\n", rango, PilaTamanio(&pila));
+		}
 		nueva_U = false;
 		if (Solucion(&rnodo)) {
 			if (rnodo.ci < U) {    // se ha encontrado una solucion mejor
@@ -207,6 +216,7 @@ int main (int argc, char **argv) {
 		//Si la pila esta vacia pedimos trabajo al proceso master
 		else {
 			if(PilaVacia(&pila)) {
+				printf("Hola\n");
 				obtenerTrabajo(&pila, &nodo);
 			}
 		}
