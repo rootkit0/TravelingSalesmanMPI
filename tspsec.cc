@@ -8,13 +8,14 @@
 using namespace std;
  
 unsigned int NCIUDADES;
-int size, rango, tareaPeticion;
+int size, rango, tareaPeticion, optimoU;
 int tagPeticion = 50;
 int tagRespuesta = 60;
 int tagOptimo = 70;
-int procesosFin = 0;
+int tareasFinalizadas = 0;
 MPI_Datatype nodoDatatype;
 MPI_Request request;
+MPI_Request requestOptimo;
 MPI_Status status;
 
 struct tNodoPar {
@@ -69,7 +70,8 @@ void obtenerTrabajo(tPila *pila, tNodo *nodo) {
 	}
 }
 
-void compartirOptimo(int U, bool nueva_U) {
+void compartirOptimo(int U, bool nueva_U, tPila *pila) {
+	int flag;
 	//Si el proceso ha encontrado un optimo lo comparte con los otros procesos
 	if(nueva_U) {
 		for(int i=0; i<size; ++i) {
@@ -77,6 +79,20 @@ void compartirOptimo(int U, bool nueva_U) {
 				MPI_Send(&U, 1, MPI_INT, i, tagOptimo, MPI_COMM_WORLD);
 			}
 		}
+	}
+	//Comprovar los optimos de los otros procesos
+	MPI_Test(&requestOptimo, &flag, MPI_STATUS_IGNORE);
+	while(flag) {
+		if(optimoU < U) {
+			U = optimoU;
+			nueva_U = true;
+		}
+		MPI_Irecv(&optimoU, 1, MPI_INT, MPI_ANY_SOURCE, tagOptimo, MPI_COMM_WORLD, &requestOptimo);
+		MPI_Test(&requestOptimo, &flag, MPI_STATUS_IGNORE);
+	}
+	//Acotar la pila con el nuevo optimo obtenido
+	if(nueva_U) {
+		PilaAcotar (pila, U);
 	}
 }
 
@@ -105,7 +121,6 @@ int main (int argc, char **argv) {
 	int  U;				// valor de c.s.
 	tPila pila;			// pila de nodos a explorar
 	U = INFINITO;		// inicializa cota superior
-	int tarea;
 
 	//Estructura de datos MPI
 	int blocklenghts[4] = {1, 100, 1, 100};
@@ -145,7 +160,9 @@ int main (int argc, char **argv) {
 		obtenerTrabajo(&pila, &nodo);
 	}
 
+	//Iniciamos las recepciones no bloqueantes de las peticiones y optimos
 	MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
+	MPI_Irecv(&optimoU, 1, MPI_INT, MPI_ANY_SOURCE, tagOptimo, MPI_COMM_WORLD, &requestOptimo);
 
 	PilaPop(&pila, &nodo);
 	while (activo) {
@@ -183,10 +200,9 @@ int main (int argc, char **argv) {
 				}
 			}
 		}
-		if (nueva_U) PilaAcotar (&pila, U);
 
 		//Compartir y obtener los optimos de los distintos procesos
-		//compartirOptimo(U, nueva_U);
+		compartirOptimo(U, nueva_U, &pila);
 		if(rango == 0) {
 			//El proceso master atiende las peticiones de trabajo
 			asignarTrabajo(&pila, &nodo);
