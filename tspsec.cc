@@ -8,7 +8,7 @@
 using namespace std;
  
 unsigned int NCIUDADES;
-int size, rango;
+int size, rango, tareaPeticion;
 int tagPeticion = 50;
 int tagRespuesta = 60;
 int tagOptimo = 70;
@@ -25,35 +25,25 @@ struct tNodoPar {
 } nodoPar;
 
 void asignarTrabajo(tPila *pila, tNodo *nodo) {
-	int tarea, flag;
+	int flag;
 	//Comprobamos si tenemos alguna peticion de trabajo pendiente
-	MPI_Irecv(&tarea, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
 	MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
-	while(!flag) {
+	while(flag) {
+		if(PilaPop(pila, nodo)) {
+			//Adaptar el formato del struct para enviarlo
+			nodoPar.ci = nodo->ci;
+			for(int i=0; i<NCIUDADES; ++i) {
+				nodoPar.incl[i] = nodo->incl[i];
+			}
+			nodoPar.orig_excl = nodo->orig_excl;
+			for(int j=0; j<NCIUDADES; ++j) {
+				nodoPar.dest_excl[j] = nodo->dest_excl[j];
+			}
+			//Enviar el struct a la tarea recibida
+			MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
+		}
+		MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
 		MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
-	}
-	//Procesamos la peticion de trabajo
-	if(PilaPop(pila, nodo)) {
-		//Adaptar el formato del struct para enviarlo
-		nodoPar.ci = nodo->ci;
-		for(int i=0; i<NCIUDADES; ++i) {
-			nodoPar.incl[i] = nodo->incl[i];
-		}
-		nodoPar.orig_excl = nodo->orig_excl;
-		for(int j=0; j<NCIUDADES; ++j) {
-			nodoPar.dest_excl[j] = nodo->dest_excl[j];
-		}
-		//Enviar el struct a la tarea recibida
-		MPI_Send(&nodoPar, 1, nodoDatatype, tarea, tagRespuesta, MPI_COMM_WORLD);
-	}
-	else {
-		if(procesosFin < size-1) {
-			++procesosFin;
-		}
-		else {
-			//TODO: Finalizar los procesos
-			exit(0);
-		}
 	}
 }
 
@@ -88,8 +78,6 @@ void compartirOptimo(int U, bool nueva_U) {
 			}
 		}
 	}
-	//Obtener posibles optimos de otros procesos
-
 }
 
 int main (int argc, char **argv) {
@@ -117,6 +105,7 @@ int main (int argc, char **argv) {
 	int  U;				// valor de c.s.
 	tPila pila;			// pila de nodos a explorar
 	U = INFINITO;		// inicializa cota superior
+	int tarea;
 
 	//Estructura de datos MPI
 	int blocklenghts[4] = {1, 100, 1, 100};
@@ -155,7 +144,9 @@ int main (int argc, char **argv) {
 		//Los procesos piden trabajo al master
 		obtenerTrabajo(&pila, &nodo);
 	}
-	
+
+	MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
+
 	PilaPop(&pila, &nodo);
 	while (activo) {
 		Ramifica (&nodo, &lnodo, &rnodo, tsp0);
@@ -195,8 +186,7 @@ int main (int argc, char **argv) {
 		if (nueva_U) PilaAcotar (&pila, U);
 
 		//Compartir y obtener los optimos de los distintos procesos
-		compartirOptimo(U, nueva_U);
-
+		//compartirOptimo(U, nueva_U);
 		if(rango == 0) {
 			//El proceso master atiende las peticiones de trabajo
 			asignarTrabajo(&pila, &nodo);
