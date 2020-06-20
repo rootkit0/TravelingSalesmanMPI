@@ -49,11 +49,13 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 		}
 		else {
 			if(tareasFinalizadas < size-2) {
+				++tareasFinalizadas;
 				nodoPar.task_fin = 1;
 				MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
 			}
 			else {
-				//TODO: Cerrar proceso 0
+				fin = true;
+				break;
 			}
 		}
 		MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
@@ -232,6 +234,8 @@ int main (int argc, char **argv) {
 		}
 		PilaPop(&pila, &nodo);
 	}
+
+	printf("Proceso: %d, terminado.\n", rango);
 
 	MPI_Barrier(MPI_COMM_WORLD);
  	t=MPI::Wtime()-t;
