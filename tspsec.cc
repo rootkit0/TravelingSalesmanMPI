@@ -13,6 +13,8 @@ int tagPeticion = 50;
 int tagRespuesta = 60;
 int tagOptimo = 70;
 int tareasFinalizadas = 0;
+bool fin = false;
+tNodo solucion;
 MPI_Datatype nodoDatatype;
 MPI_Request request;
 MPI_Request requestOptimo;
@@ -23,6 +25,7 @@ struct tNodoPar {
 	int incl[100];
 	int orig_excl;
 	int dest_excl[100];
+	int task_fin;
 } nodoPar;
 
 void asignarTrabajo(tPila *pila, tNodo *nodo) {
@@ -40,8 +43,18 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 			for(int j=0; j<NCIUDADES; ++j) {
 				nodoPar.dest_excl[j] = nodo->dest_excl[j];
 			}
+			nodoPar.task_fin = 0;
 			//Enviar el struct a la tarea recibida
 			MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
+		}
+		else {
+			if(tareasFinalizadas < size-2) {
+				nodoPar.task_fin = 1;
+				MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
+			}
+			else {
+				//TODO: Cerrar proceso 0
+			}
 		}
 		MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
 		MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
@@ -61,6 +74,10 @@ void obtenerTrabajo(tPila *pila, tNodo *nodo) {
 		nodo->orig_excl = nodoPar.orig_excl;
 		for(int j=0; j<NCIUDADES; ++j) {
 			nodo->dest_excl[j] = nodoPar.dest_excl[j];
+		}
+		nodo->task_fin = nodoPar.task_fin;
+		if(nodo->task_fin == 1) {
+			fin = true;
 		}
 		//Push a la pila con el nodo obtenido
 		PilaPush(pila, nodo);
@@ -114,8 +131,7 @@ int main (int argc, char **argv) {
 	int** tsp0 = reservarMatrizCuadrada(NCIUDADES);
 	tNodo	nodo,		// nodo a explorar
 			lnodo,		// hijo izquierdo
-			rnodo,		// hijo derecho
-			solucion;	// mejor solucion
+			rnodo;		// hijo derecho
 	bool activo,		// condicion de fin
 		nueva_U;		// hay nuevo valor de c.s.
 	int  U;				// valor de c.s.
@@ -123,16 +139,17 @@ int main (int argc, char **argv) {
 	U = INFINITO;		// inicializa cota superior
 
 	//Estructura de datos MPI
-	int blocklenghts[4] = {1, 100, 1, 100};
-	MPI_Datatype types[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-	MPI_Aint intex;
-	MPI_Type_extent(MPI_INT, &intex);
-	MPI_Aint offsets[4];
+	int blocklenghts[5] = {1, 100, 1, 100, 1};
+	MPI_Datatype types[5] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+	MPI_Aint index;
+	MPI_Type_extent(MPI_INT, &index);
+	MPI_Aint offsets[5];
 	offsets[0] = (MPI_Aint) 0;
-	offsets[1] = intex;
-	offsets[2] = intex + intex*100;
-	offsets[3] = intex + intex*100 + intex;
-	MPI_Type_struct(4, blocklenghts, offsets, types, &nodoDatatype);
+	offsets[1] = index;
+	offsets[2] = index + index*100;
+	offsets[3] = index + index*100 + index;
+	offsets[4] = index + index*100 + index + index*100;
+	MPI_Type_struct(5, blocklenghts, offsets, types, &nodoDatatype);
 	MPI_Type_commit(&nodoDatatype);
 	InicNodo (&nodo);	// inicializa estructura nodo
 	PilaInic (&pila);	// inicializa pila
@@ -165,7 +182,7 @@ int main (int argc, char **argv) {
 	MPI_Irecv(&optimoU, 1, MPI_INT, MPI_ANY_SOURCE, tagOptimo, MPI_COMM_WORLD, &requestOptimo);
 
 	PilaPop(&pila, &nodo);
-	while (activo) {
+	while (!fin) {
 		Ramifica (&nodo, &lnodo, &rnodo, tsp0);
 		nueva_U = false;
 		if (Solucion(&rnodo)) {
@@ -213,7 +230,7 @@ int main (int argc, char **argv) {
 				obtenerTrabajo(&pila, &nodo);
 			}
 		}
-		activo = PilaPop (&pila, &nodo);
+		PilaPop(&pila, &nodo);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);

@@ -102,6 +102,7 @@ class tNodo {
 		int* incl;
 		int orig_excl;
 		int* dest_excl;
+    int task_fin;
  
 		tNodo() {incl = new int[NCIUDADES]; dest_excl = new int[NCIUDADES-2];};
 		~tNodo() {delete [] incl; delete [] dest_excl;};
