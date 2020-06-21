@@ -14,7 +14,6 @@ int tagRespuesta = 60;
 int tagOptimo = 70;
 int tareasFinalizadas = 0;
 bool fin = false;
-tNodo solucion;
 MPI_Datatype nodoDatatype;
 MPI_Request request;
 MPI_Request requestOptimo;
@@ -48,14 +47,10 @@ void asignarTrabajo(tPila *pila, tNodo *nodo) {
 			MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
 		}
 		else {
-			if(tareasFinalizadas < size-2) {
+			if(tareasFinalizadas < size-1) {
 				++tareasFinalizadas;
 				nodoPar.task_fin = 1;
 				MPI_Send(&nodoPar, 1, nodoDatatype, tareaPeticion, tagRespuesta, MPI_COMM_WORLD);
-			}
-			else {
-				fin = true;
-				break;
 			}
 		}
 		MPI_Irecv(&tareaPeticion, 1, MPI_INT, MPI_ANY_SOURCE, tagPeticion, MPI_COMM_WORLD, &request);
@@ -103,15 +98,15 @@ void compartirOptimo(int U, bool nueva_U, tPila *pila) {
 	MPI_Test(&requestOptimo, &flag, MPI_STATUS_IGNORE);
 	while(flag) {
 		if(optimoU < U) {
+			//DEBUG
+			printf("Proceso: %d, Nuevo optimo recibido: %d\n", rango, optimoU);
+			//Actualizar el valor
 			U = optimoU;
-			nueva_U = true;
+			//Acotar la pila con el nuevo optimo obtenido
+			PilaAcotar (pila, U);
 		}
 		MPI_Irecv(&optimoU, 1, MPI_INT, MPI_ANY_SOURCE, tagOptimo, MPI_COMM_WORLD, &requestOptimo);
 		MPI_Test(&requestOptimo, &flag, MPI_STATUS_IGNORE);
-	}
-	//Acotar la pila con el nuevo optimo obtenido
-	if(nueva_U) {
-		PilaAcotar (pila, U);
 	}
 }
 
@@ -133,7 +128,8 @@ int main (int argc, char **argv) {
 	int** tsp0 = reservarMatrizCuadrada(NCIUDADES);
 	tNodo	nodo,		// nodo a explorar
 			lnodo,		// hijo izquierdo
-			rnodo;		// hijo derecho
+			rnodo,		// hijo derecho
+			solucion;
 	bool activo,		// condicion de fin
 		nueva_U;		// hay nuevo valor de c.s.
 	int  U;				// valor de c.s.
@@ -166,8 +162,12 @@ int main (int argc, char **argv) {
 	activo = !Inconsistente(tsp0);
 
 	if(rango == 0) {
+		int tasks = size;
+		if(size > 4) {
+			tasks *= 5;
+		}
 		//El proceso master llena la pila hasta que el tamano sea igual al n. procesos
-		while(PilaTamanio(&pila) < size*5) {
+		while(PilaTamanio(&pila) < tasks) {
 			Ramifica (&nodo, &lnodo, &rnodo, tsp0);
 			PilaPush(&pila, &lnodo);
 			PilaPush(&pila, &rnodo);
@@ -222,6 +222,7 @@ int main (int argc, char **argv) {
 
 		//Compartir y obtener los optimos de los distintos procesos
 		compartirOptimo(U, nueva_U, &pila);
+
 		if(rango == 0) {
 			//El proceso master atiende las peticiones de trabajo
 			asignarTrabajo(&pila, &nodo);
@@ -232,15 +233,20 @@ int main (int argc, char **argv) {
 				obtenerTrabajo(&pila, &nodo);
 			}
 		}
-		PilaPop(&pila, &nodo);
-	}
 
-	printf("Proceso: %d, terminado.\n", rango);
+		//Sacamos el ultimo elemento de la pila
+		PilaPop(&pila, &nodo);
+
+		if(rango == 0 && tareasFinalizadas == size-1){
+			fin = true;
+		}
+	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
  	t=MPI::Wtime()-t;
     //El proceso master escribe la solucion
 	if(rango == 0) {
+		printf("Escribiendo la solucion, coste total(ci): %d\n", solucion.ci);
 		EscribeSolucion(&solucion, t);
 	}
 	liberarMatriz(tsp0);

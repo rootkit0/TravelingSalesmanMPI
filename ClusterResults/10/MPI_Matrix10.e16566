@@ -1,0 +1,146 @@
+*** Error in `./tspsec': free(): invalid next size (normal): 0x0000000001533960 ***
+======= Backtrace: =========
+/lib64/libc.so.6(+0x7c619)[0x2b8cf722d619]
+./tspsec[0x404121]
+./tspsec[0x401745]
+/lib64/libc.so.6(__libc_start_main+0xf5)[0x2b8cf71d2c05]
+./tspsec[0x401b4f]
+======= Memory map: ========
+00400000-00405000 r-xp 00000000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+00604000-00605000 r--p 00004000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+00605000-00606000 rw-p 00005000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+01520000-01568000 rw-p 00000000 00:00 0                                  [heap]
+2b8cf60ef000-2b8cf6110000 r-xp 00000000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b8cf6110000-2b8cf6113000 rw-p 00000000 00:00 0 
+2b8cf611c000-2b8cf6264000 rw-p 00000000 00:00 0 
+2b8cf6310000-2b8cf6311000 r--p 00021000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b8cf6311000-2b8cf6312000 rw-p 00022000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b8cf6312000-2b8cf6313000 rw-p 00000000 00:00 0 
+2b8cf6313000-2b8cf6332000 r-xp 00000000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b8cf6332000-2b8cf6532000 ---p 0001f000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b8cf6532000-2b8cf6534000 r--p 0001f000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b8cf6534000-2b8cf6535000 rw-p 00021000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b8cf6535000-2b8cf6745000 r-xp 00000000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b8cf6745000-2b8cf6945000 ---p 00210000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b8cf6945000-2b8cf6953000 r--p 00210000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b8cf6953000-2b8cf6957000 rw-p 0021e000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b8cf6957000-2b8cf6991000 rw-p 00000000 00:00 0 
+2b8cf6991000-2b8cf6a7a000 r-xp 00000000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b8cf6a7a000-2b8cf6c7a000 ---p 000e9000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b8cf6c7a000-2b8cf6c82000 r--p 000e9000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b8cf6c82000-2b8cf6c84000 rw-p 000f1000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b8cf6c84000-2b8cf6c99000 rw-p 00000000 00:00 0 
+2b8cf6c99000-2b8cf6d9a000 r-xp 00000000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b8cf6d9a000-2b8cf6f99000 ---p 00101000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b8cf6f99000-2b8cf6f9a000 r--p 00100000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b8cf6f9a000-2b8cf6f9b000 rw-p 00101000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b8cf6f9b000-2b8cf6fb0000 r-xp 00000000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b8cf6fb0000-2b8cf71af000 ---p 00015000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b8cf71af000-2b8cf71b0000 r--p 00014000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b8cf71b0000-2b8cf71b1000 rw-p 00015000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b8cf71b1000-2b8cf7369000 r-xp 00000000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b8cf7369000-2b8cf7569000 ---p 001b8000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b8cf7569000-2b8cf756d000 r--p 001b8000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b8cf756d000-2b8cf756f000 rw-p 001bc000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b8cf756f000-2b8cf7574000 rw-p 00000000 00:00 0 
+2b8cf7574000-2b8cf757b000 r-xp 00000000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b8cf757b000-2b8cf777a000 ---p 00007000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b8cf777a000-2b8cf777b000 r--p 00006000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b8cf777b000-2b8cf777c000 rw-p 00007000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b8cf777c000-2b8cf7793000 r-xp 00000000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b8cf7793000-2b8cf7992000 ---p 00017000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b8cf7992000-2b8cf7993000 r--p 00016000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b8cf7993000-2b8cf7994000 rw-p 00017000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b8cf7994000-2b8cf7998000 rw-p 00000000 00:00 0 
+2b8cf7998000-2b8cf7ab7000 r-xp 00000000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b8cf7ab7000-2b8cf7cb7000 ---p 0011f000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b8cf7cb7000-2b8cf7cb8000 r--p 0011f000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b8cf7cb8000-2b8cf7cba000 rw-p 00120000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b8cf7cba000-2b8cf7cf5000 r-xp 00000000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b8cf7cf5000-2b8cf7ef4000 ---p 0003b000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b8cf7ef4000-2b8cf7ef5000 r--p 0003a000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b8cf7ef5000-2b8cf7ef6000 rw-p 0003b000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b8cf7ef6000-2b8cfac99000 rw-s 00000000 00:10 657341                     /dev/shm/mpich_shar_tmpQH0Rpz (deleted)
+2b8cfac99000-2b8cfaca5000 r-xp 00000000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b8cfaca5000-2b8cfaea4000 ---p 0000c000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b8cfaea4000-2b8cfaea5000 r--p 0000b000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b8cfaea5000-2b8cfaea6000 rw-p 0000c000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b8cfaea6000-2b8cfb230000 rw-p 00000000 00:00 0 
+2b8cfc000000-2b8cfc021000 rw-p 00000000 00:00 0 
+2b8cfc021000-2b8d00000000 ---p 00000000 00:00 0 
+7ffdde6ae000-7ffdde6d0000 rw-p 00000000 00:00 0                          [stack]
+7ffdde7c7000-7ffdde7c9000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+*** Error in `./tspsec': free(): invalid next size (normal): 0x0000000000dbf960 ***
+======= Backtrace: =========
+/lib64/libc.so.6(+0x7c619)[0x2b72456d1619]
+./tspsec[0x404121]
+./tspsec[0x401745]
+/lib64/libc.so.6(__libc_start_main+0xf5)[0x2b7245676c05]
+./tspsec[0x401b4f]
+======= Memory map: ========
+00400000-00405000 r-xp 00000000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+00604000-00605000 r--p 00004000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+00605000-00606000 rw-p 00005000 00:29 30937235                           /home/ddz1/TravelingSalesmanMPI-master/tspsec
+00dac000-00dcd000 rw-p 00000000 00:00 0                                  [heap]
+2b7244593000-2b72445b4000 r-xp 00000000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b72445b4000-2b72445bb000 rw-p 00000000 00:00 0 
+2b72445c0000-2b7244708000 rw-p 00000000 00:00 0 
+2b72447b4000-2b72447b5000 r--p 00021000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b72447b5000-2b72447b6000 rw-p 00022000 08:01 264106                     /usr/lib64/ld-2.17.so
+2b72447b6000-2b72447b7000 rw-p 00000000 00:00 0 
+2b72447b7000-2b72447d6000 r-xp 00000000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b72447d6000-2b72449d6000 ---p 0001f000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b72449d6000-2b72449d8000 r--p 0001f000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b72449d8000-2b72449d9000 rw-p 00021000 08:01 537054                     /opt/mpich3/gnu/lib/libmpicxx.so.12.1.0
+2b72449d9000-2b7244be9000 r-xp 00000000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b7244be9000-2b7244de9000 ---p 00210000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b7244de9000-2b7244df7000 r--p 00210000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b7244df7000-2b7244dfb000 rw-p 0021e000 08:01 537046                     /opt/mpich3/gnu/lib/libmpi.so.12.1.0
+2b7244dfb000-2b7244e35000 rw-p 00000000 00:00 0 
+2b7244e35000-2b7244f1e000 r-xp 00000000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b7244f1e000-2b724511e000 ---p 000e9000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b724511e000-2b7245126000 r--p 000e9000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b7245126000-2b7245128000 rw-p 000f1000 08:01 264419                     /usr/lib64/libstdc++.so.6.0.19
+2b7245128000-2b724513d000 rw-p 00000000 00:00 0 
+2b724513d000-2b724523e000 r-xp 00000000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b724523e000-2b724543d000 ---p 00101000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b724543d000-2b724543e000 r--p 00100000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b724543e000-2b724543f000 rw-p 00101000 08:01 264121                     /usr/lib64/libm-2.17.so
+2b724543f000-2b7245454000 r-xp 00000000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b7245454000-2b7245653000 ---p 00015000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b7245653000-2b7245654000 r--p 00014000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b7245654000-2b7245655000 rw-p 00015000 08:01 262165                     /usr/lib64/libgcc_s-4.8.5-20150702.so.1
+2b7245655000-2b724580d000 r-xp 00000000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b724580d000-2b7245a0d000 ---p 001b8000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b7245a0d000-2b7245a11000 r--p 001b8000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b7245a11000-2b7245a13000 rw-p 001bc000 08:01 264113                     /usr/lib64/libc-2.17.so
+2b7245a13000-2b7245a18000 rw-p 00000000 00:00 0 
+2b7245a18000-2b7245a1f000 r-xp 00000000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b7245a1f000-2b7245c1e000 ---p 00007000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b7245c1e000-2b7245c1f000 r--p 00006000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b7245c1f000-2b7245c20000 rw-p 00007000 08:01 264143                     /usr/lib64/librt-2.17.so
+2b7245c20000-2b7245c37000 r-xp 00000000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b7245c37000-2b7245e36000 ---p 00017000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b7245e36000-2b7245e37000 r--p 00016000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b7245e37000-2b7245e38000 rw-p 00017000 08:01 264139                     /usr/lib64/libpthread-2.17.so
+2b7245e38000-2b7245e3c000 rw-p 00000000 00:00 0 
+2b7245e3c000-2b7245f5b000 r-xp 00000000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b7245f5b000-2b724615b000 ---p 0011f000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b724615b000-2b724615c000 r--p 0011f000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b724615c000-2b724615e000 rw-p 00120000 08:01 265346                     /usr/lib64/libgfortran.so.3.0.0
+2b724615e000-2b7246199000 r-xp 00000000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b7246199000-2b7246398000 ---p 0003b000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b7246398000-2b7246399000 r--p 0003a000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b7246399000-2b724639a000 rw-p 0003b000 08:01 264881                     /usr/lib64/libquadmath.so.0.0.0
+2b724639a000-2b724913d000 rw-s 00000000 00:10 657341                     /dev/shm/mpich_shar_tmpQH0Rpz (deleted)
+2b724913d000-2b7249149000 r-xp 00000000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b7249149000-2b7249348000 ---p 0000c000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b7249348000-2b7249349000 r--p 0000b000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b7249349000-2b724934a000 rw-p 0000c000 08:01 264131                     /usr/lib64/libnss_files-2.17.so
+2b724934a000-2b72495f1000 rw-p 00000000 00:00 0 
+2b724c000000-2b724c021000 rw-p 00000000 00:00 0 
+2b724c021000-2b7250000000 ---p 00000000 00:00 0 
+7ffe3b2d0000-7ffe3b2f2000 rw-p 00000000 00:00 0                          [stack]
+7ffe3b3c5000-7ffe3b3c7000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
